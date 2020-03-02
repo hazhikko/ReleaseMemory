@@ -106,12 +106,6 @@
     <Compile Include="App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>
     </Compile>
-    <Compile Include="MonitoringResource.cs">
-      <SubType>Component</SubType>
-    </Compile>
-    <Compile Include="MonitoringResource.Designer.cs">
-      <DependentUpon>MonitoringResource.cs</DependentUpon>
-    </Compile>
     <Compile Include="NotifyIconWrapper.cs">
       <SubType>Component</SubType>
     </Compile>

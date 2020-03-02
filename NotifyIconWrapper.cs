@@ -8,14 +8,12 @@ using System.Drawing;
 
 namespace ReleaseMemory
 {
-
     /// <summary>
     /// タスクトレイ通知アイコン関連処理
     /// </summary>
     public partial class NotifyIconWrapper : Component
     {
-        //private ProcessStartInfo psInfo;
-        //private Process doEmptyExe;
+        private readonly ManageResource mr;
         /// <summary>
         /// NotifyIconWrapper クラス を生成、初期化します。
         /// </summary>
@@ -27,22 +25,23 @@ namespace ReleaseMemory
             this.toolStripMenuItem_DoEmpty.Click += this.ToolStripMenuItem_DoEmpty_Click;
             this.toolStripMenuItem_Exit.Click += this.ToolStripMenuItem_Exit_Click;
 
-            using (var mr = new MonitoringResource()) {
-                // 一定間隔で実行
-                // 1秒だと自動解放しても2回目走るので多めに
-                var timer = new Timer(Properties.Settings.Default.MonitoringTime);
-                timer.Elapsed += (sender, e) =>
+            this.mr = new ManageResource();
+
+            // 一定間隔で実行
+            // 1秒だと自動解放しても2回目走るので多めに
+            var timer = new Timer(Properties.Settings.Default.MonitoringTime);
+            timer.Elapsed += (sender, e) =>
+            {
+                this.mr.RefreshDatas();
+                this.ChangeIcon(this.mr.UsedPMemoryPercentage);
+                this.ChangeToolChip(this.mr.UsedPMemoryPercentage);
+                if (Properties.Settings.Default.AutoFlg)
                 {
-                    mr.RefreshDatas();
-                    this.ChangeIcon(mr.UsedPMemoryPercentage);
-                    this.ChangeToolChip(mr.UsedPMemoryPercentage);
-                    if (Properties.Settings.Default.AutoFlg)
-                    {
-                        this.AutoRelease(Properties.Settings.Default.AutoFlg, mr.UsedPMemoryPercentage);
-                    }
-                };
-                timer.Start();
-            } ;
+                    this.AutoRelease(Properties.Settings.Default.AutoFlg, this.mr.UsedPMemoryPercentage);
+                }
+            };
+            timer.Start();
+            mr.Dispose();
         }
 
         /// <summary>
@@ -117,10 +116,7 @@ namespace ReleaseMemory
             {
                 if (percentage >= GetLimitVal(Properties.Settings.Default.AutoLimit))
                 {
-                    using (var rm = new ManageResource())
-                    {
-                        rm.DoReleaseMemory();
-                    };
+                    this.mr.DoReleaseMemory();
                 }                
             }
         }
@@ -149,10 +145,7 @@ namespace ReleaseMemory
                                                     MessageBoxIcon.Information);
             if (result == DialogResult.Yes)
             {
-                using (var rm = new ManageResource())
-                {
-                    rm.DoReleaseMemory();
-                };
+                this.mr.DoReleaseMemory();
             }
         }
 
